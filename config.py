@@ -1,0 +1,3 @@
+CSRF_ENABLED = True
+# SECRET_KEY = 'B1hVR@seBUFSgaDnjQMv5KZjWSrZV6eL9p3N%7t8?MAvPjgOtSpki/ZI3Uo4OFExvIx/UXduoCUH?8TmoR6/kyqVfWsTtfFW16f1'
+SECRET_KEY = 'supersecretkey'
