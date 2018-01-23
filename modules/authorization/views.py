@@ -3,7 +3,9 @@ import datetime
 from functools import wraps
 
 import jwt
-from flask import render_template, request, redirect, flash, jsonify, session, make_response
+from flask import render_template, request, redirect, flash, jsonify, session, g
+from jwt import ExpiredSignatureError
+
 from modules import app
 from modules.authorization.forms import LoginForm
 
@@ -20,13 +22,14 @@ def token_required(f):
         token = request.headers.get('token')
 
         if not token:
-            # return jsonify({'message': 'Token is required'})
+            # return jsonify({'message': 'Token is required'}), 403
             token = session.get("token")
 
         try:
-            jwt.decode(token, app.config['SECRET_KEY'])
-        except:
-            return jsonify({'message': 'Token is invalid'})
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            g.user = data.get('user')
+        except ExpiredSignatureError:
+            return jsonify({'message': 'Token is invalid'}), 403
 
         return f(*args, **kwargs)
 
@@ -43,7 +46,7 @@ def protected():
 @app.route('/index')
 @token_required
 def index():
-    user = {'name': 'Dima'}
+    user = {'name': g.user}
     title = "Login"
     posts = [
         {
@@ -61,7 +64,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if request.method == 'POST' and form.validate_on_submit():
+    if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
         if username in users and password == users[username]:
